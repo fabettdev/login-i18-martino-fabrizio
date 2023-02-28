@@ -1,407 +1,709 @@
-import React, { useEffect } from "react";
+import React, { Component } from "react";
 import { gsap } from "gsap";
-import Monster from "../components/funcComponents/Monster";
+import i18next from "i18next";
+import languagePack from "../assets/translations/languages.json";
+import './entryapp.css';
+import '../styles/common.css';
 
-function EntryApp() {
+i18next.init({
+  lng: "it", // default language
+  fallbackLng: "en", // fallback language
+  resources: {
+    it: { translation: languagePack.it },
+    en: { translation: languagePack.en },
+  },
+});
 
-  useEffect(() => {
-    var email = document.querySelector("#email"),
-      password = document.querySelector("#password"),
-      mySVG = document.querySelector(".svgContainer"),
-      armL = document.querySelector(".armL"),
-      armR = document.querySelector(".armR"),
-      eyeL = document.querySelector(".eyeL"),
-      eyeR = document.querySelector(".eyeR"),
-      nose = document.querySelector(".nose"),
-      mouth = document.querySelector(".mouth"),
-      mouthBG = document.querySelector(".mouthBG"),
-      mouthSmallBG = document.querySelector(".mouthSmallBG"),
-      mouthMediumBG = document.querySelector(".mouthMediumBG"),
-      mouthLargeBG = document.querySelector(".mouthLargeBG"),
-      mouthMaskPath = document.querySelector("#mouthMaskPath"),
-      mouthOutline = document.querySelector(".mouthOutline"),
-      tooth = document.querySelector(".tooth"),
-      tongue = document.querySelector(".tongue"),
-      chin = document.querySelector(".chin"),
-      face = document.querySelector(".face"),
-      eyebrow = document.querySelector(".eyebrow"),
-      outerEarL = document.querySelector(".earL .outerEar"),
-      outerEarR = document.querySelector(".earR .outerEar"),
-      earHairL = document.querySelector(".earL .earHair"),
-      earHairR = document.querySelector(".earR .earHair"),
-      hair = document.querySelector(".hair");
-    var caretPos,
-      curEmailIndex,
-      screenCenter,
-      svgCoords,
-      eyeMaxHorizD = 20,
-      eyeMaxVertD = 10,
-      noseMaxHorizD = 23,
-      noseMaxVertD = 10,
-      dFromC,
-      eyeDistH,
-      eyeLDistV,
-      eyeRDistV,
-      eyeDistR,
-      mouthStatus = "small";
+class EntryApp extends Component {
 
-    function getCoord(e) {
-      var carPos = email.selectionEnd,
-        div = document.createElement("div"),
-        span = document.createElement("span"),
-        copyStyle = getComputedStyle(email),
-        emailCoords = {},
-        caretCoords = {},
-        centerCoords = {};
-      [].forEach.call(copyStyle, function (prop) {
-        div.style[prop] = copyStyle[prop];
-      });
-      div.style.position = "absolute";
-      document.body.appendChild(div);
-      div.textContent = email.value.substr(0, carPos);
-      span.textContent = email.value.substr(carPos) || ".";
-      div.appendChild(span);
+  constructor(props) {
+    super(props);
 
-      emailCoords = getPosition(email); //console.log("emailCoords.x: " + emailCoords.x + ", emailCoords.y: " + emailCoords.y);
-      caretCoords = getPosition(span); //console.log("caretCoords.x " + caretCoords.x + ", caretCoords.y: " + caretCoords.y);
-      centerCoords = getPosition(mySVG); //console.log("centerCoords.x: " + centerCoords.x);
-      svgCoords = getPosition(mySVG);
-      screenCenter = centerCoords.x + mySVG.offsetWidth / 2; //console.log("screenCenter: " + screenCenter);
-      caretPos = caretCoords.x + emailCoords.x; //console.log("caretPos: " + caretPos);
+    this.state = {
+      language: "it"
+    };
 
-      dFromC = screenCenter - caretPos; //console.log("dFromC: " + dFromC);
-      var pFromC = Math.round((caretPos / screenCenter) * 100) / 100;
-      if (pFromC < 1) {
-      } else if (pFromC > 1) {
-        pFromC -= 2;
-        pFromC = Math.abs(pFromC);
-      }
+    this.email = React.createRef(); // document.querySelector("#email"); FATTO
+    this.password = React.createRef(); // document.querySelector("#password"); FATTO
+    this.mySVG = React.createRef(); // document.querySelector(".svgContainer"); FATTO
+    this.armL = React.createRef(); // document.querySelector(".armL"); FATTO
+    this.armR = React.createRef(); // document.querySelector(".armR"); FATTO
+    this.eyeL = React.createRef(); // document.querySelector(".eyeL"); FATTO
+    this.eyeR = React.createRef(); // document.querySelector(".eyeR"); FATTO
+    this.nose = React.createRef(); // document.querySelector(".nose"); FATTO
+    this.mouth = React.createRef(); // document.querySelector(".mouth"); FATTO
+    this.mouthBG = React.createRef(); // document.querySelector(".mouthBG"); FATTO
+    // this.mouthSmallBG = React.createRef(); // document.querySelector(".mouthSmallBG");
+    // this.mouthMediumBG = React.createRef(); // document.querySelector(".mouthMediumBG");
+    // this.mouthLargeBG = React.createRef(); // document.querySelector(".mouthLargeBG");
+    // this.mouthMaskPath = React.createRef(); // document.querySelector("#mouthMaskPath");
+    this.mouthOutline = React.createRef(); // document.querySelector(".mouthOutline"); FATTO
+    this.tooth = React.createRef(); // document.querySelector(".tooth"); FATTO
+    this.tongue = React.createRef(); // document.querySelector(".tongue"); FATTO
+    this.chin = React.createRef(); // document.querySelector(".chin"); FATTO
+    this.face = React.createRef(); // document.querySelector(".face"); FATTO
+    this.eyebrow = React.createRef(); // document.querySelector(".eyebrow"); FATTO
+    this.outerEarL = React.createRef(); // document.querySelector(".earL .outerEar"); FATTO
+    this.outerEarR = React.createRef(); // document.querySelector(".earR .outerEar"); FATTO
+    this.earHairL = React.createRef(); // document.querySelector(".earL .earHair"); FATTO
+    this.earHairR = React.createRef(); // document.querySelector(".earR .earHair"); FATTO
+    this.hair = React.createRef(); // document.querySelector(".hair"); FATTO
+    this.caretPos = null;
+    this.curEmailIndex = null;
+    this.screenCenter = null;
+    this.svgCoords = null;
+    this.eyeMaxHorizD = 20;
+    this.eyeMaxVertD = 10;
+    this.noseMaxHorizD = 23;
+    this.noseMaxVertD = 10;
+    this.dFromC = null;
+    this.eyeDistH = null;
+    // this.eyeLDistV;
+    // this.eyeRDistV;
+    // this.eyeDistR;
+    this.mouthStatus = "small";
+  }
 
-      eyeDistH = -dFromC * 0.05;
-      if (eyeDistH > eyeMaxHorizD) {
-        eyeDistH = eyeMaxHorizD;
-      } else if (eyeDistH < -eyeMaxHorizD) {
-        eyeDistH = -eyeMaxHorizD;
-      }
-
-      var eyeLCoords = { x: svgCoords.x + 84, y: svgCoords.y + 76 };
-      var eyeRCoords = { x: svgCoords.x + 113, y: svgCoords.y + 76 };
-      var noseCoords = { x: svgCoords.x + 97, y: svgCoords.y + 81 };
-      var mouthCoords = { x: svgCoords.x + 100, y: svgCoords.y + 100 };
-      var eyeLAngle = getAngle(
-        eyeLCoords.x,
-        eyeLCoords.y,
-        emailCoords.x + caretCoords.x,
-        emailCoords.y + 25
-      );
-      var eyeLX = Math.cos(eyeLAngle) * eyeMaxHorizD;
-      var eyeLY = Math.sin(eyeLAngle) * eyeMaxVertD;
-      var eyeRAngle = getAngle(
-        eyeRCoords.x,
-        eyeRCoords.y,
-        emailCoords.x + caretCoords.x,
-        emailCoords.y + 25
-      );
-      var eyeRX = Math.cos(eyeRAngle) * eyeMaxHorizD;
-      var eyeRY = Math.sin(eyeRAngle) * eyeMaxVertD;
-      var noseAngle = getAngle(
-        noseCoords.x,
-        noseCoords.y,
-        emailCoords.x + caretCoords.x,
-        emailCoords.y + 25
-      );
-      var noseX = Math.cos(noseAngle) * noseMaxHorizD;
-      var noseY = Math.sin(noseAngle) * noseMaxVertD;
-      var mouthAngle = getAngle(
-        mouthCoords.x,
-        mouthCoords.y,
-        emailCoords.x + caretCoords.x,
-        emailCoords.y + 25
-      );
-      var mouthX = Math.cos(mouthAngle) * noseMaxHorizD;
-      var mouthY = Math.sin(mouthAngle) * noseMaxVertD;
-      var mouthR = Math.cos(mouthAngle) * 6;
-      var chinX = mouthX * 0.8;
-      var chinY = mouthY * 0.5;
-      var chinS = 1 - (dFromC * 0.15) / 100;
-      if (chinS > 1) {
-        chinS = 1 - (chinS - 1);
-      }
-      var faceX = mouthX * 0.3;
-      var faceY = mouthY * 0.4;
-      var faceSkew = Math.cos(mouthAngle) * 5;
-      var eyebrowSkew = Math.cos(mouthAngle) * 25;
-      var outerEarX = Math.cos(mouthAngle) * 4;
-      var outerEarY = Math.cos(mouthAngle) * 5;
-      var hairX = Math.cos(mouthAngle) * 6;
-      var hairS = 1.2;
-
-      gsap.to(eyeL, { duration: 1, x: -eyeLX, y: -eyeLY, ease: gsap.easeOut });
-      gsap.to(eyeR, { duration: 1, x: -eyeRX, y: -eyeRY, ease: gsap.easeOut });
-      gsap.to(nose, {
-        duration: 1,
-        x: -noseX,
-        y: -noseY,
-        rotation: mouthR,
-        transformOrigin: "center center",
-        ease: gsap.easeOut
-      });
-      gsap.to(mouth, {
-        duration: 1,
-        x: -mouthX,
-        y: -mouthY,
-        rotation: mouthR,
-        transformOrigin: "center center",
-        ease: gsap.easeOut
-      });
-      gsap.to(chin, {
-        duration: 1,
-        x: -chinX,
-        y: -chinY,
-        scaleY: chinS,
-        ease: gsap.easeOut
-      });
-      gsap.to(face, {
-        duration: 1,
-        x: -faceX,
-        y: -faceY,
-        skewX: -faceSkew,
-        transformOrigin: "center top",
-        ease: gsap.easeOut
-      });
-      gsap.to(eyebrow, {
-        duration: 1,
-        x: -faceX,
-        y: -faceY,
-        skewX: -eyebrowSkew,
-        transformOrigin: "center top",
-        ease: gsap.easeOut
-      });
-      gsap.to(outerEarL, { duration: 1, x: outerEarX, y: -outerEarY, ease: gsap.easeOut });
-      gsap.to(outerEarR, { duration: 1, x: outerEarX, y: outerEarY, ease: gsap.easeOut });
-      gsap.to(earHairL, { duration: 1, x: -outerEarX, y: -outerEarY, ease: gsap.easeOut });
-      gsap.to(earHairR, { duration: 1, x: -outerEarX, y: outerEarY, ease: gsap.easeOut });
-      gsap.to(hair, {
-        duration: 1,
-        x: hairX,
-        scaleY: hairS,
-        transformOrigin: "center bottom",
-        ease: gsap.easeOut
-      });
-
-      document.body.removeChild(div);
-    }
-
-    function onEmailInput(e) {
-      getCoord(e);
-      var value = e.target.value;
-      curEmailIndex = value.length;
-
-      // very crude email validation for now to trigger effects
-      if (curEmailIndex > 0) {
-        if (mouthStatus == "small") {
-          mouthStatus = "medium";
-          gsap.to([mouthBG, mouthOutline, mouthMaskPath], {
-            duration: 1,
-            morphSVG: mouthMediumBG,
-            shapeIndex: 8,
-            ease: gsap.easeOut
-          });
-          gsap.to(tooth, { duration: 1, x: 0, y: 0, ease: gsap.easeOut });
-          gsap.to(tongue, { duration: 1, x: 0, y: 1, ease: gsap.easeOut });
-          /***** */
-          gsap.to(mouthBG, {
-            duration: 1,
-            scaleX: 5.00,
-            scaleY: 5.00,
-            ease: gsap.easeOut
-          });
-          /**** */
-
-          gsap.to([eyeL, eyeR], {
-            duration: 1,
-            scaleX: 0.85,
-            scaleY: 0.85,
-            ease: gsap.easeOut
-          });
-        }
-        if (value.includes("@")) {
-          console.log('entrato alla 220 - bocca dovrebbe essere grande')
-          mouthStatus = "large";
-          gsap.to([mouthBG, mouthOutline, mouthMaskPath], {
-            duration: 1,
-            morphSVG: mouthLargeBG,
-            ease: gsap.easeOut
-          });
-          gsap.to(tooth, { duration: 1, x: 3, y: -2, ease: gsap.easeOut });
-          gsap.to(tongue, { duration: 1, y: 2, ease: gsap.easeOut });
-          gsap.to([eyeL, eyeR], {
-            duration: 1,
-            scaleX: 0.65,
-            scaleY: 0.65,
-            ease: gsap.easeOut,
-            transformOrigin: "center center"
-          });
-        } else {
-          console.log('entrato alla 237 - bocca dovrebbe essere media')
-          mouthStatus = "medium";
-          gsap.to([mouthBG, mouthOutline, mouthMaskPath], {
-            duration: 1,
-            morphSVG: mouthMediumBG,
-            ease: gsap.easeOut
-          });
-          gsap.to(tooth, { duration: 1, x: 0, y: 0, ease: gsap.easeOut });
-          gsap.to(tongue, { duration: 1, x: 0, y: 1, ease: gsap.easeOut });
-          gsap.to([eyeL, eyeR], {
-            duration: 1,
-            scaleX: 0.85,
-            scaleY: 0.85,
-            ease: gsap.easeOut
-          });
-        }
-      } else {
-        mouthStatus = "small";
-        gsap.to([mouthBG, mouthOutline, mouthMaskPath], {
-          duration: 1,
-          morphSVG: mouthSmallBG,
-          shapeIndex: 9,
-          ease: gsap.easeOut
-        });
-        gsap.to(tooth, { duration: 1, x: 0, y: 0, ease: gsap.easeOut });
-        gsap.to(tongue, { duration: 1, y: 0, ease: gsap.easeOut });
-        gsap.to([eyeL, eyeR], { duration: 1, scaleX: 1, scaleY: 1, ease: gsap.easeOut });
-      }
-    }
-
-    function onEmailFocus(e) {
-      e.target.parentElement.classList.add("focusWithText");
-      getCoord();
-    }
-
-    function onEmailBlur(e) {
-      if (e.target.value == "") {
-        e.target.parentElement.classList.remove("focusWithText");
-      }
-      resetFace();
-    }
-
-    function onPasswordFocus(e) {
-      coverEyes();
-    }
-
-    function onPasswordBlur(e) {
-      uncoverEyes();
-    }
-
-    function coverEyes() {
-      gsap.to(armL, { duration: 0.45, x: -93, y: 2, rotation: 0, ease: gsap.easeOut });
-      gsap.to(armR, {
-        duration: 0.45,
-        x: -93,
-        y: 2,
-        rotation: 0,
-        ease: gsap.easeOut,
-        delay: 0.1
-      });
-    }
-
-    function uncoverEyes() {
-      gsap.to(armL, { duration: 1.35, y: 220, ease: gsap.easeOut });
-      gsap.to(armL, { duration: 1.35, rotation: 105, ease: gsap.easeOut, delay: 0.1 });
-      gsap.to(armR, { duration: 1.35, y: 220, ease: gsap.easeOut });
-      gsap.to(armR, { duration: 1.35, rotation: -105, ease: gsap.easeOut, delay: 0.1 });
-    }
-
-    function resetFace() {
-      gsap.to([eyeL, eyeR], { duration: 1, x: 0, y: 0, ease: gsap.easeOut });
-      gsap.to(nose, { duration: 1, x: 0, y: 0, scaleX: 1, scaleY: 1, ease: gsap.easeOut });
-      gsap.to(mouth, { duration: 1, x: 0, y: 0, rotation: 0, ease: gsap.easeOut });
-      gsap.to(chin, { duration: 1, x: 0, y: 0, scaleY: 1, ease: gsap.easeOut });
-      gsap.to([face, eyebrow], { duration: 1, x: 0, y: 0, skewX: 0, ease: gsap.easeOut });
-      gsap.to([outerEarL, outerEarR, earHairL, earHairR, hair], {
-        duration: 1,
-        x: 0,
-        y: 0,
-        scaleY: 1,
-        ease: gsap.easeOut
-      });
-    }
-
-    function getAngle(x1, y1, x2, y2) {
-      var angle = Math.atan2(y1 - y2, x1 - x2);
-      return angle;
-    }
-
-    function getPosition(el) {
-      var xPos = 0;
-      var yPos = 0;
-
-      while (el) {
-        if (el.tagName == "BODY") {
-          // deal with browser quirks with body/window/document and page scroll
-          var xScroll = el.scrollLeft || document.documentElement.scrollLeft;
-          var yScroll = el.scrollTop || document.documentElement.scrollTop;
-
-          xPos += el.offsetLeft - xScroll + el.clientLeft;
-          yPos += el.offsetTop - yScroll + el.clientTop;
-        } else {
-          // for all other non-BODY elements
-          xPos += el.offsetLeft - el.scrollLeft + el.clientLeft;
-          yPos += el.offsetTop - el.scrollTop + el.clientTop;
-        }
-
-        el = el.offsetParent;
-      }
-      return {
-        x: xPos,
-        y: yPos
-      };
-    }
-
-    email.addEventListener("focus", onEmailFocus);
-    email.addEventListener("blur", onEmailBlur);
-    email.addEventListener("input", onEmailInput);
-    password.addEventListener("focus", onPasswordFocus);
-    password.addEventListener("blur", onPasswordBlur);
-    gsap.set(armL, {
+  componentDidMount() {
+    /* gsap.set(this.armL, {
       x: -93,
       y: 220,
       rotation: 105,
       transformOrigin: "top left"
     });
-    gsap.set(armR, {
+    gsap.set(this.armR, {
       x: -93,
       y: 220,
       rotation: -105,
       transformOrigin: "top right"
+    }); */
+  }
+
+  componentDidUpdate() {
+  }
+
+  setLanguage = (e) => {
+    e.preventDefault();
+    let languageChanged = "";
+    if (this.state.language === "it") {
+      i18next.changeLanguage("en");
+      languageChanged = "en";
+    } else {
+      i18next.changeLanguage("it");
+      languageChanged = "it";
+    }
+    this.setState({
+      language: languageChanged
+    })
+  }
+
+  getCoord(e) {
+    let carPos = this.email.selectionEnd,
+      div = document.createElement("div"),
+      span = document.createElement("span"),
+      copyStyle = getComputedStyle(this.email),
+      emailCoords = {},
+      caretCoords = {},
+      centerCoords = {};
+    [].forEach.call(copyStyle, function (prop) {
+      div.style[prop] = copyStyle[prop];
     });
-  })
+    div.style.position = "absolute";
+    document.body.appendChild(div);
+    div.textContent = this.email.value.substr(0, carPos);
+    span.textContent = this.email.value.substr(carPos) || ".";
+    div.appendChild(span);
+    div.setAttribute('id', 'createdDiv');
 
-  return (
-    <div>
-      <form>
-        <div className="svgContainer">
-          <div>
-            <Monster />
+    emailCoords = this.getPosition(this.email); //console.log("emailCoords.x: " + emailCoords.x + ", emailCoords.y: " + emailCoords.y);
+    caretCoords = this.getPosition(span); //console.log("caretCoords.x " + caretCoords.x + ", caretCoords.y: " + caretCoords.y);
+    centerCoords = this.getPosition(this.mySVG); //console.log("centerCoords.x: " + centerCoords.x);
+    this.svgCoords = this.getPosition(this.mySVG);
+    this.screenCenter = centerCoords.x + this.mySVG.offsetWidth / 2; //console.log("this.screenCenter: " + this.screenCenter);
+    this.caretPos = caretCoords.x + emailCoords.x; //console.log("this.caretPos: " + this.caretPos);
+
+    this.dFromC = this.screenCenter - this.caretPos; //console.log("this.dFromC: " + dFromC);
+    let pFromC = Math.round((this.caretPos / this.screenCenter) * 100) / 100;
+    if (pFromC < 1) {
+    } else if (pFromC > 1) {
+      pFromC -= 2;
+      pFromC = Math.abs(pFromC);
+    }
+
+    this.eyeDistH = -this.dFromC * 0.05;
+    if (this.eyeDistH > this.eyeMaxHorizD) {
+      this.eyeDistH = this.eyeMaxHorizD;
+    } else if (this.eyeDistH < -this.eyeMaxHorizD) {
+      this.eyeDistH = -this.eyeMaxHorizD;
+    }
+
+    let eyeLCoords = { x: this.svgCoords.x + 84, y: this.svgCoords.y + 76 };
+    let eyeRCoords = { x: this.svgCoords.x + 113, y: this.svgCoords.y + 76 };
+    let noseCoords = { x: this.svgCoords.x + 97, y: this.svgCoords.y + 81 };
+    let mouthCoords = { x: this.svgCoords.x + 100, y: this.svgCoords.y + 100 };
+    let eyeLAngle = this.getAngle(
+      eyeLCoords.x,
+      eyeLCoords.y,
+      emailCoords.x + caretCoords.x,
+      emailCoords.y + 25
+    );
+    let eyeLX = Math.cos(eyeLAngle) * this.eyeMaxHorizD;
+    let eyeLY = Math.sin(eyeLAngle) * this.eyeMaxVertD;
+    let eyeRAngle = this.getAngle(
+      eyeRCoords.x,
+      eyeRCoords.y,
+      emailCoords.x + caretCoords.x,
+      emailCoords.y + 25
+    );
+    let eyeRX = Math.cos(eyeRAngle) * this.eyeMaxHorizD;
+    let eyeRY = Math.sin(eyeRAngle) * this.eyeMaxVertD;
+    let noseAngle = this.getAngle(
+      noseCoords.x,
+      noseCoords.y,
+      emailCoords.x + caretCoords.x,
+      emailCoords.y + 25
+    );
+    let noseX = Math.cos(noseAngle) * this.noseMaxHorizD;
+    let noseY = Math.sin(noseAngle) * this.noseMaxVertD;
+    let mouthAngle = this.getAngle(
+      mouthCoords.x,
+      mouthCoords.y,
+      emailCoords.x + caretCoords.x,
+      emailCoords.y + 25
+    );
+    let mouthX = Math.cos(mouthAngle) * this.noseMaxHorizD;
+    let mouthY = Math.sin(mouthAngle) * this.noseMaxVertD;
+    let mouthR = Math.cos(mouthAngle) * 6;
+    let chinX = mouthX * 0.8;
+    let chinY = mouthY * 0.5;
+    let chinS = 1 - (this.dFromC * 0.15) / 100;
+    if (chinS > 1) {
+      chinS = 1 - (chinS - 1);
+    }
+    let faceX = mouthX * 0.3;
+    let faceY = mouthY * 0.4;
+    let faceSkew = Math.cos(mouthAngle) * 5;
+    let eyebrowSkew = Math.cos(mouthAngle) * 25;
+    let outerEarX = Math.cos(mouthAngle) * 4;
+    let outerEarY = Math.cos(mouthAngle) * 5;
+    let hairX = Math.cos(mouthAngle) * 6;
+    let hairS = 1.2;
+
+    gsap.to(this.eyeL, { duration: 1, x: -eyeLX, y: -eyeLY, ease: gsap.easeOut });
+    gsap.to(this.eyeR, { duration: 1, x: -eyeRX, y: -eyeRY, ease: gsap.easeOut });
+    gsap.to(this.nose, {
+      duration: 1,
+      x: -noseX,
+      y: -noseY,
+      rotation: mouthR,
+      transformOrigin: "center center",
+      ease: gsap.easeOut
+    });
+    gsap.to(this.mouth, {
+      duration: 1,
+      x: -mouthX,
+      y: -mouthY,
+      rotation: mouthR,
+      transformOrigin: "center center",
+      ease: gsap.easeOut
+    });
+    gsap.to(this.chin, {
+      duration: 1,
+      x: -chinX,
+      y: -chinY,
+      scaleY: chinS,
+      ease: gsap.easeOut
+    });
+    gsap.to(this.face, {
+      duration: 1,
+      x: -faceX,
+      y: -faceY,
+      skewX: -faceSkew,
+      transformOrigin: "center top",
+      ease: gsap.easeOut
+    });
+    gsap.to(this.eyebrow, {
+      duration: 1,
+      x: -faceX,
+      y: -faceY,
+      skewX: -eyebrowSkew,
+      transformOrigin: "center top",
+      ease: gsap.easeOut
+    });
+    gsap.to(this.outerEarL, { duration: 1, x: outerEarX, y: -outerEarY, ease: gsap.easeOut });
+    gsap.to(this.outerEarR, { duration: 1, x: outerEarX, y: outerEarY, ease: gsap.easeOut });
+    gsap.to(this.earHairL, { duration: 1, x: -outerEarX, y: -outerEarY, ease: gsap.easeOut });
+    gsap.to(this.earHairR, { duration: 1, x: -outerEarX, y: outerEarY, ease: gsap.easeOut });
+    gsap.to(this.hair, {
+      duration: 1,
+      x: hairX,
+      scaleY: hairS,
+      transformOrigin: "center bottom",
+      ease: gsap.easeOut
+    });
+
+    document.body.removeChild(div);
+  }
+
+  onEmailInput(e) {
+    this.getCoord(e);
+    let value = e.target.value;
+    this.curEmailIndex = value.length;
+
+    // very crude email validation for now to trigger effects
+    if (this.curEmailIndex > 0) {
+      if (this.mouthStatus == "small") {
+        this.mouthStatus = "medium";
+        gsap.to([this.mouthBG, this.mouthOutline, this.mouthMaskPath], {
+          duration: 1,
+          morphSVG: this.mouthMediumBG,
+          shapeIndex: 8,
+          ease: gsap.easeOut
+        });
+        gsap.to(this.tooth, { duration: 1, x: 0, y: 0, ease: gsap.easeOut });
+        gsap.to(this.tongue, { duration: 1, x: 0, y: 1, ease: gsap.easeOut });
+
+        gsap.to([this.eyeL, this.eyeR], {
+          duration: 1,
+          scaleX: 0.85,
+          scaleY: 0.85,
+          ease: gsap.easeOut
+        });
+      }
+      if (value.includes("@")) {
+        console.log('entrato alla 220 - bocca dovrebbe essere grande')
+        this.mouthStatus = "large";
+        gsap.to([this.mouthBG, this.mouthOutline, this.mouthMaskPath], {
+          duration: 1,
+          //morphSVG: this.mouthLargeBG,
+          ease: gsap.easeOut
+        });
+        gsap.to(this.tooth, { duration: 1, x: 3, y: -2, ease: gsap.easeOut });
+        gsap.to(this.tongue, { duration: 1, y: 2, ease: gsap.easeOut });
+        gsap.to([this.eyeL, this.eyeR], {
+          duration: 1,
+          scaleX: 0.65,
+          scaleY: 0.65,
+          ease: gsap.easeOut,
+          transformOrigin: "center center"
+        });
+      } else {
+        console.log('entrato alla 237 - bocca dovrebbe essere media')
+        this.mouthStatus = "medium";
+        gsap.to([this.mouthBG, this.mouthOutline, this.mouthMaskPath], {
+          duration: 1,
+          //morphSVG: this.mouthMediumBG,
+          ease: gsap.easeOut
+        });
+        gsap.to(this.tooth, { duration: 1, x: 0, y: 0, ease: gsap.easeOut });
+        gsap.to(this.tongue, { duration: 1, x: 0, y: 1, ease: gsap.easeOut });
+        gsap.to([this.eyeL, this.eyeR], {
+          duration: 1,
+          scaleX: 0.85,
+          scaleY: 0.85,
+          ease: gsap.easeOut
+        });
+      }
+    } else {
+      this.mouthStatus = "small";
+      gsap.to([this.mouthBG, this.mouthOutline, this.mouthMaskPath], {
+        duration: 1,
+        //morphSVG: this.mouthSmallBG,
+        shapeIndex: 9,
+        ease: gsap.easeOut
+      });
+      gsap.to(this.tooth, { duration: 1, x: 0, y: 0, ease: gsap.easeOut });
+      gsap.to(this.tongue, { duration: 1, y: 0, ease: gsap.easeOut });
+      gsap.to([this.eyeL, this.eyeR], { duration: 1, scaleX: 1, scaleY: 1, ease: gsap.easeOut });
+    }
+  }
+
+  onEmailFocus(e) {
+    e.target.parentElement.classList.add("focusWithText");
+    this.getCoord();
+  }
+
+  onEmailBlur(e) {
+    if (e.target.value == "") {
+      e.target.parentElement.classList.remove("focusWithText");
+    }
+    this.resetFace();
+  }
+
+  onPasswordFocus(e) {
+    this.coverEyes();
+  }
+
+  onPasswordBlur(e) {
+    this.uncoverEyes();
+  }
+
+  coverEyes() {
+    gsap.to(this.armL, { duration: 0.45, x: -93, y: 2, rotation: 0, ease: gsap.easeOut });
+    gsap.to(this.armR, {
+      duration: 0.45,
+      x: -93,
+      y: 2,
+      rotation: 0,
+      ease: gsap.easeOut,
+      delay: 0.1
+    });
+  }
+
+  uncoverEyes() {
+    gsap.to(this.armL, { duration: 1.35, y: 220, ease: gsap.easeOut });
+    gsap.to(this.armL, { duration: 1.35, rotation: 105, ease: gsap.easeOut, delay: 0.1 });
+    gsap.to(this.armR, { duration: 1.35, y: 220, ease: gsap.easeOut });
+    gsap.to(this.armR, { duration: 1.35, rotation: -105, ease: gsap.easeOut, delay: 0.1 });
+  }
+
+  resetFace() {
+    gsap.to([this.eyeL, this.eyeR], { duration: 1, x: 0, y: 0, ease: gsap.easeOut });
+    gsap.to(this.nose, { duration: 1, x: 0, y: 0, scaleX: 1, scaleY: 1, ease: gsap.easeOut });
+    gsap.to(this.mouth, { duration: 1, x: 0, y: 0, rotation: 0, ease: gsap.easeOut });
+    gsap.to(this.chin, { duration: 1, x: 0, y: 0, scaleY: 1, ease: gsap.easeOut });
+    gsap.to([this.face, this.eyebrow], { duration: 1, x: 0, y: 0, skewX: 0, ease: gsap.easeOut });
+    gsap.to([this.outerEarL, this.outerEarR, this.earHairL, this.earHairR, this.hair], {
+      duration: 1,
+      x: 0,
+      y: 0,
+      scaleY: 1,
+      ease: gsap.easeOut
+    });
+  }
+
+  getAngle(x1, y1, x2, y2) {
+    let angle = Math.atan2(y1 - y2, x1 - x2);
+    return angle;
+  }
+
+  getPosition(el) {
+    let xPos = 0;
+    let yPos = 0;
+
+    while (el) {
+      if (el.tagName == "BODY") {
+        // deal with browser quirks with body/window/document and page scroll
+        let xScroll = el.scrollLeft || document.documentElement.scrollLeft;
+        let yScroll = el.scrollTop || document.documentElement.scrollTop;
+
+        xPos += el.offsetLeft - xScroll + el.clientLeft;
+        yPos += el.offsetTop - yScroll + el.clientTop;
+      } else {
+        // for all other non-BODY elements
+        xPos += el.offsetLeft - el.scrollLeft + el.clientLeft;
+        yPos += el.offsetTop - el.scrollTop + el.clientTop;
+      }
+
+      el = el.offsetParent;
+    }
+    return {
+      x: xPos,
+      y: yPos
+    };
+  }
+
+  // this.email.addEventListener("focus", onEmailFocus);
+  // this.email.addEventListener("blur", onEmailBlur);
+  // this.email.addEventListener("input", onEmailInput);
+  // this.password.addEventListener("focus", onPasswordFocus);
+  // this.password.addEventListener("blur", onPasswordBlur);
+  /*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+  /* gsap.set(this.armL, {
+    x: -93,
+    y: 220,
+    rotation: 105,
+    transformOrigin: "top left"
+  });
+  gsap.set(this.armR, {
+    x: -93,
+    y: 220,
+    rotation: -105,
+    transformOrigin: "top right"
+  }); */
+
+  componentWillUnmount() {
+  }
+
+  render() {
+    return (
+      <div>
+        <form>
+          <div className="svgContainer" ref={this.mySVG}>
+            <div>
+              <svg
+                className="mySVG"
+                xmlns="http://www.w3.org/2000/svg"
+                xmlnsXlink="http://www.w3.org/1999/xlink"
+                viewBox="0 0 200 200"
+              >
+                <defs>
+                  <circle id="a" cx={100} cy={100} r={100} />
+                </defs>
+                <clipPath id="d">
+                  <use xlinkHref="#a" overflow="visible" />
+                </clipPath>
+                <circle cx={100} cy={100} r={100} fill="#a9ddf3" />
+                <g className="body">
+                  <path
+                    fill="#FFF"
+                    d="M193.3 135.9c-5.8-8.4-15.5-13.9-26.5-13.9H151V72c0-27.6-22.4-50-50-50S51 44.4 51 72v50H32.1c-10.6 0-20 5.1-25.8 13v78h187v-77.1z"
+                  />
+                  <path
+                    fill="none"
+                    stroke="#3A5E77"
+                    strokeWidth={2.5}
+                    strokeLinecap="round"
+                    d="M193.3 135.9c-5.8-8.4-15.5-13.9-26.5-13.9H151V72c0-27.6-22.4-50-50-50S51 44.4 51 72v50H32.1c-10.6 0-20 5.1-25.8 13"
+                  />
+                  <path
+                    fill="#DDF1FA"
+                    d="M100 156.4c-22.9 0-43 11.1-54.1 27.7 15.6 10 34.2 15.9 54.1 15.9s38.5-5.8 54.1-15.9c-11.1-16.6-31.2-27.7-54.1-27.7z"
+                  />
+                </g>
+                <g className="earL">
+                  <g className="outerEar" fill="#ddf1fa" stroke="#3a5e77" strokeWidth={2.5} ref={this.outerEarL}>
+                    <circle cx={47} cy={83} r={11.5} />
+                    <path
+                      d="M46.3 78.9c-2.3 0-4.1 1.9-4.1 4.1 0 2.3 1.9 4.1 4.1 4.1"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </g>
+                  <g className="earHair" ref={this.earHairL}>
+                    <path fill="#FFF" d="M51 64h15v35H51z" />
+                    <path
+                      d="M53.4 62.8C48.5 67.4 45 72.2 42.8 77c3.4-.1 6.8-.1 10.1.1-4 3.7-6.8 7.6-8.2 11.6 2.1 0 4.2 0 6.3.2-2.6 4.1-3.8 8.3-3.7 12.5 1.2-.7 3.4-1.4 5.2-1.9"
+                      fill="#fff"
+                      stroke="#3a5e77"
+                      strokeWidth={2.5}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </g>
+                </g>
+                <g className="earR">
+                  <g className="outerEar" fill="#ddf1fa" stroke="#3a5e77" strokeWidth={2.5} ref={this.outerEarR}>
+                    <circle cx={155} cy={83} r={11.5} />
+                    <path
+                      d="M155.7 78.9c2.3 0 4.1 1.9 4.1 4.1 0 2.3-1.9 4.1-4.1 4.1"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </g>
+                  <g className="earHair" ref={this.earHairR}>
+                    <path fill="#FFF" d="M131 64h20v35h-20z" />
+                    <path
+                      d="M148.6 62.8c4.9 4.6 8.4 9.4 10.6 14.2-3.4-.1-6.8-.1-10.1.1 4 3.7 6.8 7.6 8.2 11.6-2.1 0-4.2 0-6.3.2 2.6 4.1 3.8 8.3 3.7 12.5-1.2-.7-3.4-1.4-5.2-1.9"
+                      fill="#fff"
+                      stroke="#3a5e77"
+                      strokeWidth={2.5}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </g>
+                </g>
+                <path
+                  className="chin"
+                  ref={this.chin}
+                  d="M84.1 121.6c2.7 2.9 6.1 5.4 9.8 7.5l.9-4.5c2.9 2.5 6.3 4.8 10.2 6.5 0-1.9-.1-3.9-.2-5.8 3 1.2 6.2 2 9.7 2.5-.3-2.1-.7-4.1-1.2-6.1"
+                  fill="none"
+                  stroke="#3a5e77"
+                  strokeWidth={2.5}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  className="face"
+                  ref={this.face}
+                  fill="#DDF1FA"
+                  d="M134.5 46v35.5c0 21.815-15.446 39.5-34.5 39.5s-34.5-17.685-34.5-39.5V46"
+                />
+                <path
+                  className="hair"
+                  ref={this.hair}
+                  fill="#FFF"
+                  stroke="#3A5E77"
+                  strokeWidth={2.5}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M81.457 27.929c1.755-4.084 5.51-8.262 11.253-11.77.979 2.565 1.883 5.14 2.712 7.723 3.162-4.265 8.626-8.27 16.272-11.235a150.43 150.43 0 0 1-2.554 9.837c4.857-2.116 11.049-3.64 18.428-4.156a119.288 119.288 0 0 1-7.852 9.474"
+                />
+                <g className="eyebrow" fill="#FFF" ref={this.eyebrow}>
+                  <path d="M138.142 55.064a98.573 98.573 0 0 1-14.787 2.599 164.847 164.847 0 0 1-1.322 10.037 96.303 96.303 0 0 1-12.996-5.226 146.87 146.87 0 0 1-3.267 9.179 97.781 97.781 0 0 1-15.097-10.329 127.781 127.781 0 0 1-5.816 8.515c-7.916-4.124-15.053-9.114-21.296-14.738l1.107-11.768h73.475v11.731z" />
+                  <path
+                    stroke="#3A5E77"
+                    strokeWidth={2.5}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M63.56 55.102c6.243 5.624 13.38 10.614 21.296 14.738a127.781 127.781 0 0 0 5.816-8.515 97.593 97.593 0 0 0 15.097 10.329 147.099 147.099 0 0 0 3.267-9.179 96.303 96.303 0 0 0 12.996 5.226 165.64 165.64 0 0 0 1.322-10.037 98.573 98.573 0 0 0 14.787-2.599"
+                  />
+                </g>
+                <g className="eyeL" ref={this.eyeL}>
+                  <circle cx={85.5} cy={78.5} r={3.5} fill="#3a5e77" />
+                  <circle cx={84} cy={76} r={1} fill="#fff" />
+                </g>
+                <g className="eyeR" ref={this.eyeR}>
+                  <circle cx={114.5} cy={78.5} r={3.5} fill="#3a5e77" />
+                  <circle cx={113} cy={76} r={1} fill="#fff" />
+                </g>
+                <g className="mouth" ref={this.mouth}>
+                  <path
+                    className="mouthBG"
+                    ref={this.mouthBG}
+                    fill="#617E92"
+                    d="M100.2 101h-1.8c-2.7-.3-5.3-1.1-8-2.5-.7-.3-.9-1.2-.6-1.8.2-.5.7-.7 1.2-.7.2 0 .5.1.6.2 3 1.5 5.8 2.3 8.6 2.3s5.7-.7 8.6-2.3c.2-.1.4-.2.6-.2.5 0 1 .3 1.2.7.4.7.1 1.5-.6 1.9a22 22 0 0 1-7.9 2.5c-.4-.1-1.6-.1-1.9-.1z"
+                  />
+                  <defs>
+                    <path
+                      id="b"
+                      d="M100.2 101h-1.8c-2.7-.3-5.3-1.1-8-2.5-.7-.3-.9-1.2-.6-1.8.2-.5.7-.7 1.2-.7.2 0 .5.1.6.2 3 1.5 5.8 2.3 8.6 2.3s5.7-.7 8.6-2.3c.2-.1.4-.2.6-.2.5 0 1 .3 1.2.7.4.7.1 1.5-.6 1.9a22 22 0 0 1-7.9 2.5c-.4-.1-1.6-.1-1.9-.1z"
+                    />
+                  </defs>
+                  <clipPath id="c">
+                    <use xlinkHref="#b" overflow="visible" />
+                  </clipPath>
+                  <g className="tongue" clipPath="url(#c)" ref={this.tongue}>
+                    <circle cx={100} cy={107} r={8} fill="#cc4a6c" />
+                    <ellipse
+                      className="tongueHighlight"
+                      cx={100}
+                      cy={100.5}
+                      rx={3}
+                      ry={1.5}
+                      opacity={0.1}
+                      fill="#fff"
+                    />
+                  </g>
+                  <path
+                    clipPath="url(#c)"
+                    className="tooth"
+                    ref={this.tooth}
+                    style={{
+                      fill: "#fff",
+                    }}
+                    d="M106 97h-4c-1.1 0-2-.9-2-2v-2h8v2c0 1.1-.9 2-2 2z"
+                  />
+                  <path
+                    className="mouthOutline"
+                    ref={this.mouthOutline}
+                    fill="none"
+                    stroke="#3A5E77"
+                    strokeWidth={2.5}
+                    strokeLinejoin="round"
+                    d="M100.2 101h-1.8c-2.7-.3-5.3-1.1-8-2.5-.7-.3-.9-1.2-.6-1.8.2-.5.7-.7 1.2-.7.2 0 .5.1.6.2 3 1.5 5.8 2.3 8.6 2.3s5.7-.7 8.6-2.3c.2-.1.4-.2.6-.2.5 0 1 .3 1.2.7.4.7.1 1.5-.6 1.9a22 22 0 0 1-7.9 2.5c-.4-.1-1.6-.1-1.9-.1z"
+                  />
+                </g>
+                <path
+                  className="nose"
+                  ref={this.nose}
+                  d="M97.7 79.9h4.7c1.9 0 3 2.2 1.9 3.7l-2.3 3.3c-.9 1.3-2.9 1.3-3.8 0l-2.3-3.3c-1.3-1.6-.2-3.7 1.8-3.7z"
+                  fill="#3a5e77"
+                />
+                <g className="arms" clipPath="url(#d)">
+                  <g className="armL" ref={this.armL}>
+                    <path
+                      fill="#ddf1fa"
+                      stroke="#3a5e77"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeMiterlimit={10}
+                      strokeWidth={2.5}
+                      d="M121.3 97.4 111 58.7l38.8-10.4 20 36.1z"
+                    />
+                    <path
+                      fill="#ddf1fa"
+                      stroke="#3a5e77"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeMiterlimit={10}
+                      strokeWidth={2.5}
+                      d="m134.4 52.5 19.3-5.2c2.7-.7 5.4.9 6.1 3.5.7 2.7-.9 5.4-3.5 6.1L146 59.7m14.8 16.8 19.4-5.2c2.7-.7 5.4.9 6.1 3.5.7 2.7-.9 5.4-3.5 6.1l-18.3 4.9m-6.2-19 23.1-6.2c2.7-.7 5.4.9 6.1 3.5.7 2.7-.9 5.4-3.5 6.1l-23.1 6.2m-10-18 26-7c2.7-.7 5.4.9 6.1 3.5.7 2.7-.9 5.4-3.5 6.1l-21.3 5.7"
+                    />
+                    <path
+                      fill="#a9ddf3"
+                      d="m178.8 74.7 2.2-.6c1.1-.3 2.2.3 2.4 1.4.3 1.1-.3 2.2-1.4 2.4l-2.2.6-1-3.8zm1.3-10.7 2.2-.6c1.1-.3 2.2.3 2.4 1.4.3 1.1-.3 2.2-1.4 2.4l-2.2.6-1-3.8zm-4.6-9.1 2.2-.6c1.1-.3 2.2.3 2.4 1.4.3 1.1-.3 2.2-1.4 2.4l-2.2.6-1-3.8zm-23.4-5.5 2.2-.6c1.1-.3 2.2.3 2.4 1.4.3 1.1-.3 2.2-1.4 2.4l-2.2.6-1-3.8z"
+                    />
+                    <path
+                      fill="#fff"
+                      stroke="#3a5e77"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2.5}
+                      d="M123.5 96.8c-41.4 14.9-84.1 30.7-108.2 35.5L1.2 80c33.5-9.9 71.9-16.5 111.9-21.8"
+                    />
+                    <path
+                      fill="#fff"
+                      stroke="#3a5e77"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2.5}
+                      d="M108.5 59.4c7.7-5.3 14.3-8.4 22.8-13.2-2.4 5.3-4.7 10.3-6.7 15.1 4.3.3 8.4.7 12.3 1.3-4.2 5-8.1 9.6-11.5 13.9 3.1 1.1 6 2.4 8.7 3.8-1.4 2.9-2.7 5.8-3.9 8.5 2.5 3.5 4.6 7.2 6.3 11-4.9-.8-9-.7-16.2-2.7m-25.8 5.7c-.6 4-3.8 8.9-9.4 14.7-2.6-1.8-5-3.7-7.2-5.7-2.5 4.1-6.6 8.8-12.2 14-1.9-2.2-3.4-4.5-4.5-6.9-4.4 3.3-9.5 6.9-15.4 10.8-.2-3.4.1-7.1 1.1-10.9m50.6-55.9c-1.7-2.4-5.9-4.1-12.4-5.2-.9 2.2-1.8 4.3-2.5 6.5-3.8-1.8-9.4-3.1-17-3.8.5 2.3 1.2 4.5 1.9 6.8-5-.6-11.2-.9-18.4-1 2 2.9.9 3.5 3.9 6.2"
+                    />
+                  </g>
+                  <g className="armR" ref={this.armR}>
+                    <path
+                      fill="#ddf1fa"
+                      stroke="#3a5e77"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeMiterlimit={10}
+                      strokeWidth={2.5}
+                      d="m265.4 97.3 10.4-38.6-38.9-10.5-20 36.1z"
+                    />
+                    <path
+                      fill="#ddf1fa"
+                      stroke="#3a5e77"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeMiterlimit={10}
+                      strokeWidth={2.5}
+                      d="M252.4 52.4 233 47.2c-2.7-.7-5.4.9-6.1 3.5-.7 2.7.9 5.4 3.5 6.1l10.3 2.8M226 76.4l-19.4-5.2c-2.7-.7-5.4.9-6.1 3.5-.7 2.7.9 5.4 3.5 6.1l18.3 4.9m6.1-19-23.1-6.2c-2.7-.7-5.4.9-6.1 3.5-.7 2.7.9 5.4 3.5 6.1l23.1 6.2m10-18-26-7c-2.7-.7-5.4.9-6.1 3.5-.7 2.7.9 5.4 3.5 6.1l21.3 5.7"
+                    />
+                    <path
+                      fill="#a9ddf3"
+                      d="m207.9 74.7-2.2-.6c-1.1-.3-2.2.3-2.4 1.4-.3 1.1.3 2.2 1.4 2.4l2.2.6 1-3.8zM206.7 64l-2.2-.6c-1.1-.3-2.2.3-2.4 1.4-.3 1.1.3 2.2 1.4 2.4l2.2.6 1-3.8zm4.5-9.2-2.2-.6c-1.1-.3-2.2.3-2.4 1.4-.3 1.1.3 2.2 1.4 2.4l2.2.6 1-3.8zm23.4-5.4-2.2-.6c-1.1-.3-2.2.3-2.4 1.4-.3 1.1.3 2.2 1.4 2.4l2.2.6 1-3.8z"
+                    />
+                    <path
+                      fill="#fff"
+                      stroke="#3a5e77"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2.5}
+                      d="M263.3 96.7c41.4 14.9 84.1 30.7 108.2 35.5l14-52.3C352 70 313.6 63.5 273.6 58.1"
+                    />
+                    <path
+                      fill="#fff"
+                      stroke="#3a5e77"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2.5}
+                      d="m278.2 59.3-18.6-10 2.5 11.9-10.7 6.5 9.9 8.7-13.9 6.4 9.1 5.9-13.2 9.2 23.1-.9m18.1 3.1c-.4 4 1.8 8.9 6.7 14.8 3.5-1.8 6.7-3.6 9.7-5.5 1.8 4.2 5.1 8.9 10.1 14.1 2.7-2.1 5.1-4.4 7.1-6.8 4.1 3.4 9 7 14.7 11 1.2-3.4 1.8-7 1.7-10.9M314 66.7s5.4-5.7 12.6-7.4c1.7 2.9 3.3 5.7 4.9 8.6 3.8-2.5 9.8-4.4 18.2-5.7.1 3.1.1 6.1 0 9.2 5.5-1 12.5-1.6 20.8-1.9-1.4 3.9-2.5 8.4-2.5 8.4"
+                    />
+                  </g>
+                </g>
+              </svg>
+            </div>
           </div>
-        </div>
+          <button onClick={this.setLanguage}>{i18next.t("changeLanguage")}</button>
 
-        <div className="inputGroup inputGroup1">
-          <label htmlFor="email1">Email</label>
-          <input type="text" id="email" className="email" maxLength="256" />
-          <p className="helper helper1">email@domain.com</p>
-          <span className="indicator"></span>
-        </div>
-        <div className="inputGroup inputGroup2">
-          <label htmlFor="password">Password</label>
-          <input type="password" id="password" className="password" />
-        </div>
-        <div className="inputGroup inputGroup3">
-          <button id="login">Log in</button>
-        </div>
-      </form>
-    </div>
-  );
+          <div className="inputGroup inputGroup1">
+            <label htmlFor="email1">{i18next.t("email")}</label>
+            <input type="text" id="email" className="email" maxLength="256" ref={this.email} onFocus={this.onEmailFocus} onBlur={this.onEmailBlur} onInput={this.onEmailInput} />
+            <p className="helper helper1">{i18next.t("emailForm")}</p>
+            <span className="indicator"></span>
+          </div>
+          <div className="inputGroup inputGroup2">
+            <label htmlFor="password">{i18next.t("password")}</label>
+            <input type="password" id="password" className="password" ref={this.password} onBlur={this.onPasswordBlur} onFocus={this.onPasswordFocus} />
+          </div>
+          <div className="inputGroup inputGroup3">
+            <button id="login">{i18next.t("login")}</button>
+          </div>
+        </form>
+      </div >
+    )
+  }
 }
 
 export default EntryApp;

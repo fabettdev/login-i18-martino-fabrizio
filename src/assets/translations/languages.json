@@ -1,0 +1,16 @@
+{
+  "it": {
+    "login": "Accedi",
+    "password": "Parola segreta",
+    "email": "Indirizzo di posta elettronica",
+    "emailForm": "email@dominio.it",
+    "changeLanguage": "Cambia la lingua"
+  },
+  "en": {
+    "login": "Log in",
+    "password": "Password",
+    "email": "email",
+    "emailForm": "email@domain.com",
+    "changeLanguage": "Change language"
+  }
+}
